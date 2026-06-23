@@ -1,8 +1,69 @@
-<HTML>
-  <head>
-    
-  </head>
-  <Body>
-    <h1>Olã Mundo!</h1>
-  </Body>
-</HTML>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Jogos - Escola Estadual</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f8ff; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #218838; }
+        #secao-jogos { display: none; margin-top: 20px; }
+        .lista-jogos { list-style: none; padding: 0; }
+        .lista-jogos li { margin: 10px 0; background: #e2e2e2; padding: 10px; border-radius: 5px; }
+        .lista-jogos a { text-decoration: none; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Bem-vindo ao Portal de Jogos</h1>
+        
+        <!-- Seção de Identificação -->
+        <div id="login">
+            <p>Preencha seus dados para começar:</p>
+            <input type="text" id="nome" placeholder="Seu Nome Completo" required>
+            <input type="text" id="escola" placeholder="Nome da Escola" required>
+            <input type="text" id="turma" placeholder="Sua Turma (Ex: 101)" required>
+            <br>
+            <button onclick="entrarNoPortal()">Entrar</button>
+        </div>
+
+        <!-- Seção de Escolha de Jogos (Inicialmente Escondida) -->
+        <div id="secao-jogos">
+            <h3>Olá, <span id="display-nome"></span>!</h3>
+            <p>Escolha um jogo abaixo:</p>
+            <ul class="lista-jogos">
+                <li><a href="jogos/matematica/index.html">Desafio de Matemática</a></li>
+                <li><a href="jogos/portugues/index.html">Caça-Palavras</a></li>
+                <li><a href="jogos/html/index.html">Quiz de HTML</a></li>
+            </ul>
+            <button onclick="voltar()" style="background-color: #dc3545;">Sair</button>
+        </div>
+    </div>
+
+    <script>
+        function entrarNoPortal() {
+            const nome = document.getElementById('nome').value;
+            const escola = document.getElementById('escola').value;
+            const turma = document.getElementById('turma').value;
+
+            if (nome && escola && turma) {
+                // Esconde o formulário e mostra a lista de jogos
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('secao-jogos').style.display = 'block';
+                document.getElementById('display-nome').innerText = nome;
+            } else {
+                alert("Por favor, preencha todos os campos!");
+            }
+        }
+
+        function voltar() {
+            // Recarrega a página para voltar ao início
+            location.reload();
+        }
+    </script>
+</body>
+</html>
