@@ -5,65 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal de Jogos - Escola Estadual</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f8ff; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #218838; }
-        #secao-jogos { display: none; margin-top: 20px; }
-        .lista-jogos { list-style: none; padding: 0; }
-        .lista-jogos li { margin: 10px 0; background: #e2e2e2; padding: 10px; border-radius: 5px; }
-        .lista-jogos a { text-decoration: none; color: #007bff; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; transition: 0.3s; margin-top: 10px; }
+        .btn-primary { background-color: #4CAF50; color: white; }
+        .btn-secondary { background-color: #2196F3; color: white; }
+        .btn-danger { background-color: #f44336; color: white; }
+        .hidden { display: none; }
+        ul { list-style: none; padding: 0; }
+        li { background: #f9f9f9; margin: 10px 0; padding: 15px; border-radius: 8px; border-left: 5px solid #4CAF50; }
+        a { text-decoration: none; color: #333; font-weight: bold; display: block; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Bem-vindo ao Portal de Jogos</h1>
+    <div class="card">
+        <h1>Escola Estadual</h1>
         
-        <!-- Seção de Identificação -->
-        <div id="login">
-            <p>Preencha seus dados para começar:</p>
-            <input type="text" id="nome" placeholder="Seu Nome Completo" required>
-            <input type="text" id="escola" placeholder="Nome da Escola" required>
-            <input type="text" id="turma" placeholder="Sua Turma (Ex: 101)" required>
-            <br>
-            <button onclick="entrarNoPortal()">Entrar</button>
+        <!-- Tela de Boas-vindas/Login -->
+        <div id="tela-verificacao" class="hidden">
+            <p id="mensagem-retorno"></p>
+            <button class="btn-primary" onclick="confirmarLogin()">Sim, sou eu!</button>
+            <button class="btn-secondary" onclick="mostrarCadastro()">Não, criar novo perfil</button>
         </div>
 
-        <!-- Seção de Escolha de Jogos (Inicialmente Escondida) -->
-        <div id="secao-jogos">
-            <h3>Olá, <span id="display-nome"></span>!</h3>
-            <p>Escolha um jogo abaixo:</p>
-            <ul class="lista-jogos">
-                <li><a href="jogos/matematica/index.html">Desafio de Matemática</a></li>
-                <li><a href="jogos/portugues/index.html">Caça-Palavras</a></li>
-                <li><a href="jogos/html/index.html">Quiz de HTML</a></li>
+        <!-- Formulário de Cadastro -->
+        <div id="tela-cadastro" class="hidden">
+            <h3>Novo Cadastro</h3>
+            <input type="text" id="nome" placeholder="Nome Completo">
+            <input type="text" id="escola" placeholder="Nome da Escola">
+            <input type="text" id="turma" placeholder="Turma (ex: 102)">
+            <button class="btn-primary" onclick="salvarNovoUsuario()">Cadastrar e Entrar</button>
+        </div>
+
+        <!-- Lista de Jogos -->
+        <div id="tela-jogos" class="hidden">
+            <h3>Olá, <span id="user-nome"></span>!</h3>
+            <p>Selecione seu desafio:</p>
+            <ul>
+                <li><a href="jogos/matematica/index.html">🎮 Desafio de Matemática</a></li>
+                <li><a href="jogos/portugues/index.html">📚 Caça-Palavras</a></li>
             </ul>
-            <button onclick="voltar()" style="background-color: #dc3545;">Sair</button>
+            <button class="btn-danger" onclick="logout()">Sair / Trocar Usuário</button>
         </div>
     </div>
 
-    <script>
-        function entrarNoPortal() {
-            const nome = document.getElementById('nome').value;
-            const escola = document.getElementById('escola').value;
-            const turma = document.getElementById('turma').value;
-
-            if (nome && escola && turma) {
-                // Esconde o formulário e mostra a lista de jogos
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('secao-jogos').style.display = 'block';
-                document.getElementById('display-nome').innerText = nome;
-            } else {
-                alert("Por favor, preencha todos os campos!");
-            }
-        }
-
-        function voltar() {
-            // Recarrega a página para voltar ao início
-            location.reload();
-        }
-    </script>
+    <!-- Importando a lógica da pasta scripts -->
+    <script src="scripts/auth.js"></script>
 </body>
 </html>
