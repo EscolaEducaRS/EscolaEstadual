@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz de Matemática - Escola Estadual</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #eef; }
+        #game-container { max-width: 600px; margin: 50px auto; background: white; padding: 20px; border-radius: 15px; }
+        .opcoes { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        .alternativa { padding: 15px; background: #2196F3; color: white; border-radius: 8px; cursor: grab; min-width: 40px; }
+        #zona-resposta { width: 100px; height: 50px; border: 2px dashed #4CAF50; display: inline-block; vertical-align: middle; line-height: 50px; font-size: 24px; font-weight: bold; }
+        .dificuldade-btn { margin: 5px; padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h2 id="saudacao">Bem-vindo!</h2>
+        <div id="seletor-dificuldade">
+            <p>Escolha o nível:</p>
+            <button class="dificuldade-btn" onclick="iniciarJogo('facil')">Fácil</button>
+            <button class="dificuldade-btn" onclick="iniciarJogo('medio')">Médio</button>
+            <button class="dificuldade-btn" onclick="iniciarJogo('dificil')">Difícil</button>
+        </div>
+
+        <div id="area-pergunta" style="display:none;">
+            <p id="enunciado" style="font-size: 24px;"></p>
+            <div id="pergunta-visual">
+                <span id="calculo"></span> = <div id="zona-resposta" ondrop="soltar(event)" ondragover="permitirSoltar(event)">?</div>
+            </div>
+            <div class="opcoes" id="opcoes-container"></div>
+            <p id="feedback"></p>
+        </div>
+    </div>
+    <script src="quiz.js"></script>
+</body>
+</html>
