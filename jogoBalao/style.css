@@ -1,0 +1,51 @@
+/* Estilo do Balão */
+.balao {
+    position: absolute;
+    bottom: -150px;
+    width: 80px;
+    height: 100px;
+    background-color: rgba(255, 0, 0, 0.8); /* Cor padrão */
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; /* Formato ovalado */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    box-shadow: inset -10px -10px 20px rgba(0,0,0,0.2);
+    z-index: 5;
+}
+
+/* O "nó" do balão na parte de baixo */
+.balao::before {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 32px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 12px solid inherit; /* Pega a cor do balão */
+    transform: rotate(180deg);
+}
+
+/* O fio do balão */
+.balao::after {
+    content: "";
+    position: absolute;
+    bottom: -50px;
+    left: 39px;
+    width: 2px;
+    height: 50px;
+    background-color: rgba(0,0,0,0.3);
+}
+
+/* Animação de estouro */
+.estourando {
+    animation: estouro 0.3s forwards;
+    pointer-events: none;
+}
+
+@keyframes estouro {
+    to { transform: scale(2); opacity: 0; }
+}
