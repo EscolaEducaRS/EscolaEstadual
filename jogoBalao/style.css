@@ -1,40 +1,34 @@
-body { margin: 0; font-family: sans-serif; overflow: hidden; background: #87CEEB; }
-#wrapper { display: flex; height: 100vh; }
+body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; background: #87CEEB; }
+#layout-jogo { display: flex; height: 100vh; }
 
-#sidebar {
-    width: 280px;
-    background: #2c3e50;
-    color: white;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
-    box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+/* Barra Lateral Esquerda */
+#barra-lateral {
+    width: 300px; background: #2c3e50; color: white;
+    padding: 20px; display: flex; flex-direction: column;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.3); z-index: 100;
 }
 
-#box-expressao {
-    border: 5px solid #4CAF50; /* Borda solicitada */
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    margin: 20px 0;
+#container-expressao {
+    border: 5px solid #2ecc71; /* Borda Verde solicitada */
+    border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0;
 }
+#texto-conta { font-size: 52px; font-weight: bold; color: #2ecc71; }
+#media-info { font-size: 14px; color: #bdc3c7; margin-top: 5px; }
 
-#conta { font-size: 50px; font-weight: bold; color: #4CAF50; }
+/* Área dos Balões */
+#campo-baloes { flex-grow: 1; position: relative; background: #add8e6; overflow: hidden; }
 
-#cenario { flex-grow: 1; position: relative; background: #add8e6; overflow: hidden; }
-
-/* Visual do Balão CSS */
+/* Estilo do Balão CSS */
 .balao {
     position: absolute; bottom: -150px;
-    width: 70px; height: 90px;
+    width: 75px; height: 95px;
     border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
     display: flex; justify-content: center; align-items: center;
-    font-weight: bold; color: white; cursor: pointer;
+    font-size: 22px; font-weight: bold; color: white; cursor: pointer;
     box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
 }
 
 .estourando { animation: estouro 0.3s forwards; pointer-events: none; }
-@keyframes estouro { to { transform: scale(2); opacity: 0; } }
+@keyframes estouro { to { transform: scale(2.5); opacity: 0; } }
 
-#lista-ranking div { font-size: 13px; margin-bottom: 5px; border-bottom: 1px solid #3e5871; }
+#exibicao-ranking div { font-size: 13px; padding: 4px 0; border-bottom: 1px solid #34495e; }
