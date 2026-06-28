@@ -6,33 +6,33 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="container-principal">
-        <!-- Coluna Esquerda: Informações e Ranking -->
+    <div id="wrapper">
+        <!-- Coluna Esquerda -->
         <aside id="sidebar">
-            <div id="info-aluno">
+            <div class="bloco">
                 <h2 id="saudacao">Olá!</h2>
-                <div id="status">Fase: 1 | Pontos: 0</div>
+                <div id="placar">Fase: 1 | Pontos: 0</div>
             </div>
 
-            <div id="area-expressao">
-                <p>Resolva:</p>
+            <!-- Área da Expressão com Borda -->
+            <div id="box-expressao">
+                <span>Resolva:</span>
                 <div id="conta">0 + 0</div>
+                <small>Tempo Médio: <span id="tempo-atual">0</span>s</small>
             </div>
 
-            <div id="ranking-container">
-                <h3>🏆 Top 10 Ranking</h3>
-                <ol id="lista-ranking">
-                    <!-- Os 10 melhores aparecerão aqui via JS -->
-                </ol>
+            <!-- Ranking Top 10 -->
+            <div id="ranking">
+                <h3>🏆 Melhores 10</h3>
+                <div id="lista-ranking">
+                    <!-- Gerado pelo JS -->
+                </div>
             </div>
         </aside>
 
-        <!-- Área Direita: Onde os balões voam -->
-        <main id="cenario">
-            <!-- Balões gerados pelo baloes.js -->
-        </main>
+        <!-- Área de Jogo -->
+        <main id="cenario"></main>
     </div>
-
     <script src="baloes.js"></script>
 </body>
 </html>
