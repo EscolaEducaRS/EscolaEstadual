@@ -2,18 +2,53 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Balões Matemáticos</title>
-    <!-- Link para o novo arquivo CSS separado -->
+    <title>Balões Matemáticos - Escola Estadual</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Arial', sans-serif; background: #87CEEB; display: flex; flex-direction: column; height: 100vh; }
+
+        /* Área da Expressão com Borda e Maior */
+        #painel-superior {
+            background: white;
+            border: 8px solid #2c3e50; /* Borda solicitada */
+            margin: 10px;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        #conta {
+            font-size: 60px; /* Deixando a expressão bem maior */
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+
+        #saudacao, #status { font-size: 18px; color: #555; }
+
+        /* Área dos Balões (Cenário) - Não sobrepõe o painel */
+        #cenario {
+            flex-grow: 1; /* Ocupa o restante da tela abaixo do painel */
+            position: relative;
+            overflow: hidden; /* Garante que os balões sumam ao sair desta área */
+            background: #add8e6;
+            border-top: 2px solid rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
-    <div id="cenario">
-        <div id="painel-info">
-            <div id="saudacao"></div>
-            <div id="conta">Carregando...</div>
-            <div id="status">Fase: 1 | Pontos: 0</div>
-        </div>
+    <div id="painel-superior">
+        <div id="saudacao">Carregando...</div>
+        <div id="conta">0 + 0 = ?</div>
+        <div id="status">Fase: 1 | Pontos: 0</div>
     </div>
+
+    <div id="cenario">
+        <!-- Os balões aparecerão somente aqui dentro -->
+    </div>
+
     <script src="baloes.js"></script>
 </body>
 </html>
