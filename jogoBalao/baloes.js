@@ -6,23 +6,52 @@ const displayPontos = document.getElementById('painel-pontos');
 
 let pts = 0;
 let level = 1;
+let acertosNaSessao = 0; // Contador de acertos para trocar de fase
 let resCorreta;
 let tempoInicio;
 let listaTempos = [];
 
+const ACERTOS_PARA_SUBIR = 5; // X acertos necessários para mudar de fase
+
 document.getElementById('msg-boas-vindas').innerText = `Oi, ${nomeUser}!`;
 
 /**
- * CORREÇÃO: Função para gerar nova conta e atualizar o visual
+ * Gera uma nova conta baseada na fase atual.
+ * Conforme o nível sobe, as contas ficam mais difíceis e incluem subtração.
  */
 function novaRodada() {
-    const n1 = Math.floor(Math.random() * (level * 5)) + 2;
-    const n2 = Math.floor(Math.random() * (level * 5)) + 2;
-    resCorreta = n1 + n2;
+    let n1, n2, operador;
+    const dificuldade = level * 7;
+
+    if (level === 1) {
+        // Fase 1: Somente somas simples
+        n1 = Math.floor(Math.random() * 10) + 1;
+        n2 = Math.floor(Math.random() * 10) + 1;
+        operador = "+";
+        resCorreta = n1 + n2;
+    } else if (level === 2) {
+        // Fase 2: Somas um pouco maiores
+        n1 = Math.floor(Math.random() * dificuldade) + 5;
+        n2 = Math.floor(Math.random() * dificuldade) + 5;
+        operador = "+";
+        resCorreta = n1 + n2;
+    } else {
+        // Fase 3 em diante: Introduz Contas de Menos (Subtração)
+        n1 = Math.floor(Math.random() * dificuldade) + 10;
+        n2 = Math.floor(Math.random() * n1); // Garante que n2 não seja maior que n1
+        
+        // Alterna entre + e - aleatoriamente nas fases avançadas
+        if (Math.random() > 0.5) {
+            operador = "-";
+            resCorreta = n1 - n2;
+        } else {
+            operador = "+";
+            resCorreta = n1 + n2;
+        }
+    }
     
-    // Atualiza o texto na coluna lateral
-    displayConta.innerText = `${n1}+${n2}`;
-    displayPontos.innerText = `Fase: ${level} | Pontos: ${pts}`;
+    displayConta.innerText = `${n1}${operador}${n2}`;
+    displayPontos.innerText = `Fase: ${level} | Pontos: ${pts} | Acertos: ${acertosNaSessao}/${ACERTOS_PARA_SUBIR}`;
     
     tempoInicio = Date.now();
 }
@@ -31,16 +60,15 @@ function criarBalao() {
     const b = document.createElement('div');
     b.className = 'balao';
     
-    // 30% de chance de ser a resposta certa
     const correto = Math.random() > 0.7;
-    b.innerText = correto ? resCorreta : resCorreta + (Math.floor(Math.random() * 6) - 3);
+    b.innerText = correto ? resCorreta : resCorreta + (Math.floor(Math.random() * 10) - 5);
     
     b.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
     b.style.left = Math.random() * (areaJogo.clientWidth - 90) + 'px';
     areaJogo.appendChild(b);
 
     let p = -150;
-    const v = 1.6 + (level * 0.3);
+    const v = 1.4 + (level * 0.4); // Velocidade aumenta conforme a fase
     const loop = setInterval(() => {
         p += v;
         b.style.bottom = p + 'px';
@@ -52,12 +80,18 @@ function criarBalao() {
             // Lógica de Acerto
             listaTempos.push((Date.now() - tempoInicio) / 1000);
             pts += 10;
-            if (pts % 50 === 0) level++;
+            acertosNaSessao++;
+
+            // Verifica se atingiu o limite de acertos para trocar de fase
+            if (acertosNaSessao >= ACERTOS_PARA_SUBIR) {
+                level++;
+                acertosNaSessao = 0; // Reinicia o contador para a nova fase
+                alert(`Parabéns! Você avançou para a Fase ${level}!`);
+            }
             
             b.classList.add('estourando');
             clearInterval(loop);
             
-            // CORREÇÃO: Garante a troca da conta após o estouro
             setTimeout(() => {
                 b.remove();
                 novaRodada();
@@ -73,11 +107,8 @@ function criarBalao() {
 function salvarRank() {
     let r = JSON.parse(localStorage.getItem('rank_baloes')) || [];
     const m = listaTempos.length > 0 ? (listaTempos.reduce((a,b)=>a+b,0)/listaTempos.length) : 0;
-    
     r.push({ nome: nomeUser, pts: pts, t: parseFloat(m.toFixed(2)) });
-    
-    // Ordenação: 1º Pontos (Maior) -> 2º Tempo (Menor - Desempate)
-    r.sort((a,b) => b.pts - a.pts || a.t - b.t);
+    r.sort((a,b) => b.pts - a.pts || a.t - b.t); // Desempate por tempo médio
     localStorage.setItem('rank_baloes', JSON.stringify(r.slice(0, 10)));
 }
 
@@ -90,11 +121,10 @@ function mostrarRank() {
 
 function fimDeJogo() {
     salvarRank();
-    alert(`Fim! Pontos: ${pts}`);
+    alert(`Fim de Jogo! Você chegou à fase ${level} com ${pts} pontos.`);
     location.reload();
 }
 
-// Início
 novaRodada();
 mostrarRank();
-setInterval(criarBalao, 2200);
+setInterval(criarBalao, Math.max(1000, 2500 - (level * 200))); // Balões aparecem mais rápido conforme a fase
