@@ -6,32 +6,32 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="wrapper">
-        <!-- Coluna Esquerda -->
-        <aside id="sidebar">
+    <div id="layout-jogo">
+        <!-- Coluna Lateral Esquerda -->
+        <aside id="barra-lateral">
             <div class="bloco">
-                <h2 id="saudacao">Olá!</h2>
-                <div id="placar">Fase: 1 | Pontos: 0</div>
+                <h2 id="msg-boas-vindas">Olá!</h2>
+                <div id="painel-pontos">Fase: 1 | Pontos: 0</div>
             </div>
 
-            <!-- Área da Expressão com Borda -->
-            <div id="box-expressao">
-                <span>Resolva:</span>
-                <div id="conta">0 + 0</div>
-                <small>Tempo Médio: <span id="tempo-atual">0</span>s</small>
+            <!-- Área da Expressão com Borda Verde -->
+            <div id="container-expressao">
+                <p>Resolva agora:</p>
+                <div id="texto-conta">0 + 0</div>
+                <div id="media-info">Tempo Médio: <span id="valor-media">0</span>s</div>
             </div>
 
             <!-- Ranking Top 10 -->
-            <div id="ranking">
-                <h3>🏆 Melhores 10</h3>
-                <div id="lista-ranking">
-                    <!-- Gerado pelo JS -->
+            <div id="secao-ranking">
+                <h3>🏆 Ranking (Top 10)</h3>
+                <div id="exibicao-ranking">
+                    <!-- Preenchido pelo baloes.js -->
                 </div>
             </div>
         </aside>
 
-        <!-- Área de Jogo -->
-        <main id="cenario"></main>
+        <!-- Área de Jogo (Direita) -->
+        <main id="campo-baloes"></main>
     </div>
     <script src="baloes.js"></script>
 </body>
