@@ -1,44 +1,35 @@
-/* Configurações de layout e fontes */
-body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; overflow: hidden; background: #87CEEB; }
+/* Configurações básicas de layout e fontes */
+body { margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; background: #87CEEB; }
 #layout-jogo { display: flex; height: 100vh; }
 
-/* Barra lateral fixa na esquerda */
-#barra-lateral {
-    width: 320px; background: #1a252f; color: white;
-    padding: 20px; display: flex; flex-direction: column;
-    box-shadow: 5px 0 15px rgba(0,0,0,0.4); z-index: 100;
+/* Overlay de Início: Cobre a tela toda e centraliza o botão */
+#overlay-inicio {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8); z-index: 1000;
+    display: flex; justify-content: center; align-items: center;
 }
 
-/* Estilo do botão de pause */
-#btn-pause {
-    width: 100%; padding: 12px; margin-top: 15px; border: none;
-    background: #f39c12; color: white; font-weight: bold;
-    border-radius: 8px; cursor: pointer; transition: 0.3s;
+/* Botão Grande de Início */
+#btn-comecar {
+    padding: 40px 80px; font-size: 32px; font-weight: bold;
+    color: white; background: #2ecc71; border: none;
+    border-radius: 20px; cursor: pointer; transition: 0.3s;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
-#btn-pause:hover { background: #e67e22; }
+#btn-comecar:hover { transform: scale(1.1); background: #27ae60; }
 
-/* Destaque para a conta matemática */
-#display-expressao {
-    border: 6px solid #2ecc71; /* Borda verde solicitada */
-    border-radius: 15px; padding: 20px; text-align: center; margin: 20px 0;
-}
+/* Barra Lateral Esquerda e Conta com Borda Verde */
+#barra-lateral { width: 320px; background: #1a252f; color: white; padding: 20px; display: flex; flex-direction: column; }
+#display-expressao { border: 6px solid #2ecc71; border-radius: 15px; padding: 20px; text-align: center; margin: 20px 0; }
 #texto-conta { font-size: 56px; font-weight: bold; color: #2ecc71; }
 
-/* Cenário de jogo na direita */
+/* Campo de Jogo e Balões */
 #campo-baloes { flex-grow: 1; position: relative; background: #add8e6; overflow: hidden; }
-
-/* Design do Balão via CSS puro */
 .balao {
-    position: absolute; bottom: -150px;
-    width: 80px; height: 100px;
+    position: absolute; bottom: -150px; width: 80px; height: 100px;
     border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
     display: flex; justify-content: center; align-items: center;
     font-size: 24px; font-weight: bold; color: white; cursor: pointer;
-    box-shadow: inset -5px -5px 15px rgba(0,0,0,0.2);
 }
-
-/* Animação ao acertar o balão */
 .estourando { animation: estouro 0.3s forwards; pointer-events: none; }
 @keyframes estouro { to { transform: scale(2.5); opacity: 0; } }
-
-#lista-ranking div { font-size: 14px; padding: 5px; border-bottom: 1px solid #34495e; }
