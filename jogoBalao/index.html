@@ -4,41 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balões Matemáticos - Escola Estadual</title>
-    <!-- Importação do CSS externo para manter o código limpo -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Overlay Inicial: Botão grande para começar o jogo -->
+    <div id="overlay-inicio">
+        <button id="btn-comecar" onclick="iniciarJogo()">CLIQUE PARA INICIAR</button>
+    </div>
+
     <div id="layout-jogo">
-        <!-- Coluna Lateral Esquerda: Informações e Ranking -->
+        <!-- Coluna Lateral Esquerda -->
         <aside id="barra-lateral">
             <div class="sessao-usuario">
-                <h2 id="msg-boas-vindas">Carregando...</h2>
+                <h2 id="msg-boas-vindas">Olá!</h2>
                 <div id="painel-status">Fase: 1 | Pontos: 0</div>
-                <!-- Botão de Pause integrado à interface -->
-                <button id="btn-pause" onclick="alternarPause()">Pausar Jogo</button>
+                <button id="btn-pause" onclick="alternarPause()">Pausar</button>
             </div>
 
-            <!-- Área da Expressão Matemática com Borda Verde -->
             <div id="display-expressao">
                 <p>Quanto é?</p>
                 <div id="texto-conta">...</div>
                 <div id="info-velocidade">Média: <span id="valor-media">0.00</span>s</div>
             </div>
 
-            <!-- Ranking dos 10 Melhores -->
             <div id="container-ranking">
-                <h3>🏆 Melhores 10</h3>
-                <div id="lista-ranking">
-                    <!-- Preenchido dinamicamente pelo baloes.js -->
-                </div>
+                <h3>🏆 Ranking Top 10</h3>
+                <div id="lista-ranking"></div>
             </div>
         </aside>
 
-        <!-- Campo de Jogo: Onde os balões voam -->
+        <!-- Campo de Jogo na Direita -->
         <main id="campo-baloes"></main>
     </div>
 
-    <!-- Script principal do jogo -->
     <script src="baloes.js"></script>
 </body>
 </html>
