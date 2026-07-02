@@ -2,39 +2,37 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balões Matemáticos - Escola Estadual</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Overlay Inicial: Botão grande para começar o jogo -->
-    <div id="overlay-inicio">
-        <button id="btn-comecar" onclick="iniciarJogo()">CLIQUE PARA INICIAR</button>
+    <!-- Camada de Início: Centralizada e Grande -->
+    <div id="tela-inicial">
+        <button id="botao-master" onclick="comecarAgora()">VAMOS JOGAR!</button>
     </div>
 
-    <div id="layout-jogo">
-        <!-- Coluna Lateral Esquerda -->
-        <aside id="barra-lateral">
-            <div class="sessao-usuario">
-                <h2 id="msg-boas-vindas">Olá!</h2>
-                <div id="painel-status">Fase: 1 | Pontos: 0</div>
-                <button id="btn-pause" onclick="alternarPause()">Pausar</button>
+    <div id="layout-principal">
+        <!-- Barra Lateral Esquerda -->
+        <aside id="menu-lateral">
+            <div class="user-info">
+                <h2 id="nome-aluno">Olá!</h2>
+                <div id="placar">Fase: 1 | Pontos: 0</div>
             </div>
 
-            <div id="display-expressao">
-                <p>Quanto é?</p>
-                <div id="texto-conta">...</div>
-                <div id="info-velocidade">Média: <span id="valor-media">0.00</span>s</div>
+            <!-- Conta Matemática com Borda Verde -->
+            <div id="caixa-pergunta">
+                <span>Resolva:</span>
+                <div id="num-conta">...</div>
             </div>
 
-            <div id="container-ranking">
-                <h3>🏆 Ranking Top 10</h3>
-                <div id="lista-ranking"></div>
+            <div id="ranking-top">
+                <h3>🏆 TOP 10</h3>
+                <div id="lista-rank"></div>
             </div>
         </aside>
 
-        <!-- Campo de Jogo na Direita -->
-        <main id="campo-baloes"></main>
+        <!-- Área de Jogo -->
+        <main id="area-baloes"></main>
     </div>
 
     <script src="baloes.js"></script>
