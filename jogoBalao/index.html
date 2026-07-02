@@ -6,20 +6,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Camada de Início: Centralizada e Grande -->
+    <!-- Camada de Início: Centralizada para focar a atenção do aluno -->
     <div id="tela-inicial">
         <button id="botao-master" onclick="comecarAgora()">VAMOS JOGAR!</button>
     </div>
 
     <div id="layout-principal">
-        <!-- Barra Lateral Esquerda -->
+        <!-- Barra Lateral Esquerda: Informações fixas do jogo -->
         <aside id="menu-lateral">
             <div class="user-info">
                 <h2 id="nome-aluno">Olá!</h2>
+                <!-- Exibe a Fase e o progresso para o próximo nível -->
                 <div id="placar">Fase: 1 | Pontos: 0</div>
+                <div id="progresso">Acertos: 0/5</div>
             </div>
 
-            <!-- Conta Matemática com Borda Verde -->
+            <!-- Caixa da Pergunta com Borda Verde solicitada anteriormente -->
             <div id="caixa-pergunta">
                 <span>Resolva:</span>
                 <div id="num-conta">...</div>
@@ -31,7 +33,7 @@
             </div>
         </aside>
 
-        <!-- Área de Jogo -->
+        <!-- Área de Jogo onde os balões sobem -->
         <main id="area-baloes"></main>
     </div>
 
