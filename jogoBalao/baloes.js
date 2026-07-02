@@ -1,4 +1,9 @@
-// Integração com os dados do portal EscolaEstadual
+/**
+ * jogoBaloes/baloes.js
+ * Lógica do jogo de balões com correção de acúmulo em segundo plano.
+ */
+
+// 1. Definição de Variáveis Globais e Integração com o Portal
 const nomeUser = localStorage.getItem('escola_nome') || "Estudante";
 const areaJogo = document.getElementById('campo-baloes');
 const displayConta = document.getElementById('texto-conta');
@@ -6,41 +11,30 @@ const displayPontos = document.getElementById('painel-pontos');
 
 let pts = 0;
 let level = 1;
-let acertosNaSessao = 0; // Contador de acertos para trocar de fase
+let acertosNaSessao = 0;
 let resCorreta;
 let tempoInicio;
 let listaTempos = [];
-
-const ACERTOS_PARA_SUBIR = 5; // X acertos necessários para mudar de fase
+let criadorBaloes; // Variável para controlar o intervalo de criação
+const ACERTOS_PARA_SUBIR = 5;
 
 document.getElementById('msg-boas-vindas').innerText = `Oi, ${nomeUser}!`;
 
 /**
- * Gera uma nova conta baseada na fase atual.
- * Conforme o nível sobe, as contas ficam mais difíceis e incluem subtração.
+ * Gera uma nova rodada matemática baseada no nível atual.
  */
 function novaRodada() {
     let n1, n2, operador;
     const dificuldade = level * 7;
 
     if (level === 1) {
-        // Fase 1: Somente somas simples
         n1 = Math.floor(Math.random() * 10) + 1;
         n2 = Math.floor(Math.random() * 10) + 1;
         operador = "+";
         resCorreta = n1 + n2;
-    } else if (level === 2) {
-        // Fase 2: Somas um pouco maiores
-        n1 = Math.floor(Math.random() * dificuldade) + 5;
-        n2 = Math.floor(Math.random() * dificuldade) + 5;
-        operador = "+";
-        resCorreta = n1 + n2;
     } else {
-        // Fase 3 em diante: Introduz Contas de Menos (Subtração)
         n1 = Math.floor(Math.random() * dificuldade) + 10;
-        n2 = Math.floor(Math.random() * n1); // Garante que n2 não seja maior que n1
-        
-        // Alterna entre + e - aleatoriamente nas fases avançadas
+        n2 = Math.floor(Math.random() * n1);
         if (Math.random() > 0.5) {
             operador = "-";
             resCorreta = n1 - n2;
@@ -52,11 +46,16 @@ function novaRodada() {
     
     displayConta.innerText = `${n1}${operador}${n2}`;
     displayPontos.innerText = `Fase: ${level} | Pontos: ${pts} | Acertos: ${acertosNaSessao}/${ACERTOS_PARA_SUBIR}`;
-    
     tempoInicio = Date.now();
 }
 
+/**
+ * Cria o balão e define seu comportamento de subida e clique.
+ */
 function criarBalao() {
+    // Se a aba não estiver visível, não cria o balão para evitar acúmulo
+    if (document.hidden) return;
+
     const b = document.createElement('div');
     b.className = 'balao';
     
@@ -68,30 +67,31 @@ function criarBalao() {
     areaJogo.appendChild(b);
 
     let p = -150;
-    const v = 1.4 + (level * 0.4); // Velocidade aumenta conforme a fase
+    const v = 1.4 + (level * 0.4);
     const loop = setInterval(() => {
-        p += v;
-        b.style.bottom = p + 'px';
-        if (p > areaJogo.clientHeight) { clearInterval(loop); b.remove(); }
+        // Pausa o movimento se a aba estiver oculta
+        if (!document.hidden) {
+            p += v;
+            b.style.bottom = p + 'px';
+            if (p > areaJogo.clientHeight) { clearInterval(loop); b.remove(); }
+        }
     }, 16);
 
     b.onclick = () => {
         if (parseInt(b.innerText) === resCorreta) {
-            // Lógica de Acerto
             listaTempos.push((Date.now() - tempoInicio) / 1000);
             pts += 10;
             acertosNaSessao++;
 
-            // Verifica se atingiu o limite de acertos para trocar de fase
             if (acertosNaSessao >= ACERTOS_PARA_SUBIR) {
                 level++;
-                acertosNaSessao = 0; // Reinicia o contador para a nova fase
-                alert(`Parabéns! Você avançou para a Fase ${level}!`);
+                acertosNaSessao = 0;
+                alert(`Nível ${level}!`);
+                reiniciarCiclo(); // Ajusta velocidade de spawn
             }
             
             b.classList.add('estourando');
             clearInterval(loop);
-            
             setTimeout(() => {
                 b.remove();
                 novaRodada();
@@ -104,11 +104,14 @@ function criarBalao() {
     };
 }
 
+/**
+ * Salva a pontuação e o tempo médio no localStorage do navegador.
+ */
 function salvarRank() {
     let r = JSON.parse(localStorage.getItem('rank_baloes')) || [];
     const m = listaTempos.length > 0 ? (listaTempos.reduce((a,b)=>a+b,0)/listaTempos.length) : 0;
     r.push({ nome: nomeUser, pts: pts, t: parseFloat(m.toFixed(2)) });
-    r.sort((a,b) => b.pts - a.pts || a.t - b.t); // Desempate por tempo médio
+    r.sort((a,b) => b.pts - a.pts || a.t - b.t);
     localStorage.setItem('rank_baloes', JSON.stringify(r.slice(0, 10)));
 }
 
@@ -121,10 +124,30 @@ function mostrarRank() {
 
 function fimDeJogo() {
     salvarRank();
-    alert(`Fim de Jogo! Você chegou à fase ${level} com ${pts} pontos.`);
+    alert(`Fim! Fase: ${level} | Pontos: ${pts}`);
     location.reload();
 }
 
+/**
+ * Gerencia o ciclo de criação de balões, permitindo pausar/retomar.
+ */
+function reiniciarCiclo() {
+    clearInterval(criadorBaloes);
+    const intervalo = Math.max(800, 2500 - (level * 200));
+    criadorBaloes = setInterval(criarBalao, intervalo);
+}
+
+// 2. CORREÇÃO: Monitor de Visibilidade da Aba
+// Isso impede que o jogo continue "rodando" enquanto o aluno não está olhando
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        clearInterval(criadorBaloes); // Para a criação de novos balões
+    } else {
+        reiniciarCiclo(); // Retoma quando o usuário volta para o jogo
+    }
+});
+
+// Inicialização do Jogo
 novaRodada();
 mostrarRank();
-setInterval(criarBalao, Math.max(1000, 2500 - (level * 200))); // Balões aparecem mais rápido conforme a fase
+reiniciarCiclo();
