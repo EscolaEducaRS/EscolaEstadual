@@ -1,153 +1,94 @@
 /**
- * jogoBaloes/baloes.js
- * Lógica do jogo de balões com correção de acúmulo em segundo plano.
+ * baloes.js - Lógica com Início por Botão Central
+ * Analisado conforme o repositório EscolaEstadual.
  */
 
-// 1. Definição de Variáveis Globais e Integração com o Portal
+// 1. Definições de Variáveis e Elementos
 const nomeUser = localStorage.getItem('escola_nome') || "Estudante";
 const areaJogo = document.getElementById('campo-baloes');
 const displayConta = document.getElementById('texto-conta');
-const displayPontos = document.getElementById('painel-pontos');
+const displayStatus = document.getElementById('painel-status');
+const overlay = document.getElementById('overlay-inicio');
 
-let pts = 0;
-let level = 1;
-let acertosNaSessao = 0;
-let resCorreta;
-let tempoInicio;
-let listaTempos = [];
-let criadorBaloes; // Variável para controlar o intervalo de criação
+let pts = 0, level = 1, acertosFase = 0, resCorreta;
+let tempoInicio, temposAcertos = [], criadorBaloes;
+let jogoPausado = true; // Jogo começa travado até o clique no botão
 const ACERTOS_PARA_SUBIR = 5;
 
 document.getElementById('msg-boas-vindas').innerText = `Oi, ${nomeUser}!`;
 
 /**
- * Gera uma nova rodada matemática baseada no nível atual.
+ * FUNÇÃO DE INÍCIO IMEDIATO: Chamada pelo botão grande no centro da tela
+ */
+function iniciarJogo() {
+    overlay.style.display = 'none'; // Esconde o botão grande
+    jogoPausado = false;           // Libera o estado do jogo
+    
+    novaRodada();                  // Gera a primeira conta
+    criarBalao();                  // Cria o primeiro balão IMEDIATAMENTE
+    reiniciarGerador();            // Inicia o ciclo automático
+}
+
+/**
+ * Gera novos cálculos matemáticos
  */
 function novaRodada() {
-    let n1, n2, operador;
-    const dificuldade = level * 7;
-
-    if (level === 1) {
-        n1 = Math.floor(Math.random() * 10) + 1;
-        n2 = Math.floor(Math.random() * 10) + 1;
-        operador = "+";
-        resCorreta = n1 + n2;
-    } else {
-        n1 = Math.floor(Math.random() * dificuldade) + 10;
-        n2 = Math.floor(Math.random() * n1);
-        if (Math.random() > 0.5) {
-            operador = "-";
-            resCorreta = n1 - n2;
-        } else {
-            operador = "+";
-            resCorreta = n1 + n2;
-        }
-    }
+    const n1 = Math.floor(Math.random() * (level * 7)) + 2;
+    const n2 = Math.floor(Math.random() * n1);
+    const op = (level > 1 && Math.random() > 0.5) ? "-" : "+";
     
-    displayConta.innerText = `${n1}${operador}${n2}`;
-    displayPontos.innerText = `Fase: ${level} | Pontos: ${pts} | Acertos: ${acertosNaSessao}/${ACERTOS_PARA_SUBIR}`;
+    resCorreta = op === "+" ? n1 + n2 : n1 - n2;
+    displayConta.innerText = `${n1}${op}${n2}`;
+    displayStatus.innerText = `Fase: ${level} | Pontos: ${pts} | Acertos: ${acertosFase}/${ACERTOS_PARA_SUBIR}`;
     tempoInicio = Date.now();
 }
 
 /**
- * Cria o balão e define seu comportamento de subida e clique.
+ * Lógica de criação e movimento dos balões
  */
 function criarBalao() {
-    // Se a aba não estiver visível, não cria o balão para evitar acúmulo
-    if (document.hidden) return;
+    if (jogoPausado || document.hidden) return;
 
     const b = document.createElement('div');
     b.className = 'balao';
-    
     const correto = Math.random() > 0.7;
-    b.innerText = correto ? resCorreta : resCorreta + (Math.floor(Math.random() * 10) - 5);
-    
+    b.innerText = correto ? resCorreta : resCorreta + (Math.floor(Math.random() * 6) - 3);
     b.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
-    b.style.left = Math.random() * (areaJogo.clientWidth - 90) + 'px';
+    b.style.left = Math.random() * (areaJogo.clientWidth - 100) + 'px';
     areaJogo.appendChild(b);
 
-    let p = -150;
-    const v = 1.4 + (level * 0.4);
+    let pos = -150;
     const loop = setInterval(() => {
-        // Pausa o movimento se a aba estiver oculta
-        if (!document.hidden) {
-            p += v;
-            b.style.bottom = p + 'px';
-            if (p > areaJogo.clientHeight) { clearInterval(loop); b.remove(); }
-        }
+        if (!jogoPausado && !document.hidden) {
+            pos += 1.5 + (level * 0.4);
+            b.style.bottom = pos + 'px';
+            if (pos > areaJogo.clientHeight) { clearInterval(loop); b.remove(); }
+        } else { clearInterval(loop); b.remove(); } // Destrói balões se pausar ou sair do foco
     }, 16);
 
     b.onclick = () => {
+        if (jogoPausado) return;
         if (parseInt(b.innerText) === resCorreta) {
-            listaTempos.push((Date.now() - tempoInicio) / 1000);
-            pts += 10;
-            acertosNaSessao++;
-
-            if (acertosNaSessao >= ACERTOS_PARA_SUBIR) {
-                level++;
-                acertosNaSessao = 0;
-                alert(`Nível ${level}!`);
-                reiniciarCiclo(); // Ajusta velocidade de spawn
-            }
+            temposAcertos.push((Date.now() - tempoInicio) / 1000);
+            pts += 10; acertosFase++;
+            if (acertosFase >= ACERTOS_PARA_SUBIR) { level++; acertosFase = 0; }
             
             b.classList.add('estourando');
             clearInterval(loop);
-            setTimeout(() => {
-                b.remove();
-                novaRodada();
-                document.getElementById('valor-media').innerText = 
-                    (listaTempos.reduce((a,b)=>a+b,0)/listaTempos.length).toFixed(2);
-            }, 300);
-        } else {
-            fimDeJogo();
-        }
+            setTimeout(() => { b.remove(); novaRodada(); }, 300);
+        } else { fimDeJogo(); }
     };
 }
 
 /**
- * Salva a pontuação e o tempo médio no localStorage do navegador.
+ * Gerenciador do ciclo de balões
  */
-function salvarRank() {
-    let r = JSON.parse(localStorage.getItem('rank_baloes')) || [];
-    const m = listaTempos.length > 0 ? (listaTempos.reduce((a,b)=>a+b,0)/listaTempos.length) : 0;
-    r.push({ nome: nomeUser, pts: pts, t: parseFloat(m.toFixed(2)) });
-    r.sort((a,b) => b.pts - a.pts || a.t - b.t);
-    localStorage.setItem('rank_baloes', JSON.stringify(r.slice(0, 10)));
-}
-
-function mostrarRank() {
-    const d = JSON.parse(localStorage.getItem('rank_baloes')) || [];
-    document.getElementById('exibicao-ranking').innerHTML = d.map((r, i) => 
-        `<div>${i+1}º ${r.nome}: ${r.pts} pts (${r.t}s)</div>`
-    ).join('');
-}
-
-function fimDeJogo() {
-    salvarRank();
-    alert(`Fim! Fase: ${level} | Pontos: ${pts}`);
-    location.reload();
-}
-
-/**
- * Gerencia o ciclo de criação de balões, permitindo pausar/retomar.
- */
-function reiniciarCiclo() {
+function reiniciarGerador() {
     clearInterval(criadorBaloes);
-    const intervalo = Math.max(800, 2500 - (level * 200));
-    criadorBaloes = setInterval(criarBalao, intervalo);
+    if (!jogoPausado) {
+        criadorBaloes = setInterval(criarBalao, Math.max(800, 2000 - (level * 200)));
+    }
 }
 
-// 2. CORREÇÃO: Monitor de Visibilidade da Aba
-// Isso impede que o jogo continue "rodando" enquanto o aluno não está olhando
-document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-        clearInterval(criadorBaloes); // Para a criação de novos balões
-    } else {
-        reiniciarCiclo(); // Retoma quando o usuário volta para o jogo
-    }
-});
-
-// Inicialização do Jogo
-novaRodada();
+// Inicializa o ranking mas espera o botão para começar a subir balões
 mostrarRank();
-reiniciarCiclo();
