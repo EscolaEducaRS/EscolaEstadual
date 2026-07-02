@@ -1,94 +1,96 @@
 /**
- * baloes.js - Lógica com Início por Botão Central
- * Analisado conforme o repositório EscolaEstadual.
+ * Lógica do Jogo de Balões - Escola Estadual
+ * Foco: Início imediato após clique no botão central.
  */
 
-// 1. Definições de Variáveis e Elementos
-const nomeUser = localStorage.getItem('escola_nome') || "Estudante";
-const areaJogo = document.getElementById('campo-baloes');
-const displayConta = document.getElementById('texto-conta');
-const displayStatus = document.getElementById('painel-status');
-const overlay = document.getElementById('overlay-inicio');
+const overlay = document.getElementById('tela-inicial');
+const campo = document.getElementById('area-baloes');
+const contaTexto = document.getElementById('num-conta');
 
-let pts = 0, level = 1, acertosFase = 0, resCorreta;
-let tempoInicio, temposAcertos = [], criadorBaloes;
-let jogoPausado = true; // Jogo começa travado até o clique no botão
-const ACERTOS_PARA_SUBIR = 5;
-
-document.getElementById('msg-boas-vindas').innerText = `Oi, ${nomeUser}!`;
+let pontos = 0;
+let fase = 1;
+let respCerta;
+let loopCriador;
+let jogoAtivo = false;
 
 /**
- * FUNÇÃO DE INÍCIO IMEDIATO: Chamada pelo botão grande no centro da tela
+ * FUNÇÃO DE INÍCIO: Chamada pelo botão grande
+ * Remove a tela de início e começa os balões na hora.
  */
-function iniciarJogo() {
-    overlay.style.display = 'none'; // Esconde o botão grande
-    jogoPausado = false;           // Libera o estado do jogo
+function comecarAgora() {
+    overlay.style.opacity = "0"; // Efeito de sumir suave
+    setTimeout(() => overlay.style.display = "none", 500);
     
-    novaRodada();                  // Gera a primeira conta
-    criarBalao();                  // Cria o primeiro balão IMEDIATAMENTE
-    reiniciarGerador();            // Inicia o ciclo automático
+    jogoAtivo = true;
+    proximaConta(); // Gera a primeira conta
+    gerarBalao();   // Cria o primeiro balão IMEDIATAMENTE
+    iniciarCiclo(); // Inicia o intervalo de criação
 }
 
 /**
- * Gera novos cálculos matemáticos
+ * Gera os cálculos matemáticos (Soma e Subtração)
  */
-function novaRodada() {
-    const n1 = Math.floor(Math.random() * (level * 7)) + 2;
-    const n2 = Math.floor(Math.random() * n1);
-    const op = (level > 1 && Math.random() > 0.5) ? "-" : "+";
+function proximaConta() {
+    let n1 = Math.floor(Math.random() * (fase * 8)) + 2;
+    let n2 = Math.floor(Math.random() * n1);
+    let op = (fase > 2 && Math.random() > 0.5) ? "-" : "+";
     
-    resCorreta = op === "+" ? n1 + n2 : n1 - n2;
-    displayConta.innerText = `${n1}${op}${n2}`;
-    displayStatus.innerText = `Fase: ${level} | Pontos: ${pts} | Acertos: ${acertosFase}/${ACERTOS_PARA_SUBIR}`;
-    tempoInicio = Date.now();
+    respCerta = (op === "+") ? (n1 + n2) : (n1 - n2);
+    contaTexto.innerText = `${n1}${op}${n2}`;
 }
 
 /**
- * Lógica de criação e movimento dos balões
+ * Criação e animação dos balões
  */
-function criarBalao() {
-    if (jogoPausado || document.hidden) return;
+function gerarBalao() {
+    if (!jogoAtivo || document.hidden) return;
 
     const b = document.createElement('div');
     b.className = 'balao';
-    const correto = Math.random() > 0.7;
-    b.innerText = correto ? resCorreta : resCorreta + (Math.floor(Math.random() * 6) - 3);
-    b.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
-    b.style.left = Math.random() * (areaJogo.clientWidth - 100) + 'px';
-    areaJogo.appendChild(b);
+    b.style.cssText = `
+        position: absolute; bottom: -150px; width: 80px; height: 100px;
+        background: hsl(${Math.random() * 360}, 70%, 50%);
+        border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+        display: flex; justify-content: center; align-items: center;
+        color: white; font-weight: bold; cursor: pointer; font-size: 24px;
+        left: ${Math.random() * (campo.clientWidth - 100)}px;
+    `;
+    
+    const eCerto = Math.random() > 0.7;
+    b.innerText = eCerto ? respCerta : respCerta + (Math.floor(Math.random() * 6) - 3);
+    campo.appendChild(b);
 
+    // Movimento de subida
     let pos = -150;
-    const loop = setInterval(() => {
-        if (!jogoPausado && !document.hidden) {
-            pos += 1.5 + (level * 0.4);
+    const vel = 1.5 + (fase * 0.5);
+    const anim = setInterval(() => {
+        if (jogoAtivo && !document.hidden) {
+            pos += vel;
             b.style.bottom = pos + 'px';
-            if (pos > areaJogo.clientHeight) { clearInterval(loop); b.remove(); }
-        } else { clearInterval(loop); b.remove(); } // Destrói balões se pausar ou sair do foco
+            if (pos > campo.clientHeight) { clearInterval(anim); b.remove(); }
+        } else { clearInterval(anim); b.remove(); } // Limpa ao sair do foco
     }, 16);
 
     b.onclick = () => {
-        if (jogoPausado) return;
-        if (parseInt(b.innerText) === resCorreta) {
-            temposAcertos.push((Date.now() - tempoInicio) / 1000);
-            pts += 10; acertosFase++;
-            if (acertosFase >= ACERTOS_PARA_SUBIR) { level++; acertosFase = 0; }
-            
-            b.classList.add('estourando');
-            clearInterval(loop);
-            setTimeout(() => { b.remove(); novaRodada(); }, 300);
-        } else { fimDeJogo(); }
+        if (parseInt(b.innerText) === respCerta) {
+            pontos += 10;
+            if (pontos % 50 === 0) { fase++; iniciarCiclo(); }
+            b.remove();
+            proximaConta();
+        } else {
+            alert("Fim de Jogo!");
+            location.reload();
+        }
     };
 }
 
 /**
- * Gerenciador do ciclo de balões
+ * Controla a frequência de novos balões
  */
-function reiniciarGerador() {
-    clearInterval(criadorBaloes);
-    if (!jogoPausado) {
-        criadorBaloes = setInterval(criarBalao, Math.max(800, 2000 - (level * 200)));
-    }
+function iniciarCiclo() {
+    clearInterval(loopCriador);
+    const tempo = Math.max(700, 2000 - (fase * 200));
+    loopCriador = setInterval(gerarBalao, tempo);
 }
 
-// Inicializa o ranking mas espera o botão para começar a subir balões
-mostrarRank();
+// O jogo aguarda o clique no botão para executar proximaConta() e iniciarCiclo()
