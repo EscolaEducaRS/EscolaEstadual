@@ -126,6 +126,20 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-// Funções de Ranking e Inicialização omitidas para brevidade, mas devem ser mantidas
-novaRodada();
-reiniciarGerador();
+/**
+ * Ajusta a frequência de novos balões
+ */
+function reiniciarGerador() {
+    clearInterval(criadorBaloes);
+    if (!jogoPausado) {
+        // Reduzimos o intervalo base para 1400ms para o jogo ser mais dinâmico desde o início
+        const intervalo = Math.max(600, 1400 - (level * 150));
+        criadorBaloes = setInterval(criarBalao, intervalo);
+    }
+}
+
+// Inicialização imediata - IMPORTANTE para não demorar
+novaRodada();       // Gera a primeira conta matemática
+mostrarRank();      // Carrega o ranking na lateral
+criarBalao();       // CHAMADA MANUAL: Cria o primeiro balão no milissegundo 0
+reiniciarGerador(); // Inicia o ciclo de criação automática (setInterval)
