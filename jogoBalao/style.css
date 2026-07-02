@@ -1,31 +1,124 @@
-/* Reset de margens e configuração de fonte */
-body, html { margin: 0; padding: 0; height: 100%; font-family: 'Arial Black', sans-serif; overflow: hidden; }
+/**
+ * Lógica de Balões Matemáticos - Escola Estadual
+ * Sistema de progressão: A cada 5 acertos aumenta a fase e velocidade.
+ */
 
-/* Overlay escuro para destacar o botão de início */
-#tela-inicial {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(44, 62, 80, 0.95);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 1000;
+// Seleção de elementos do DOM
+const overlay = document.getElementById('tela-inicial');
+const campo = document.getElementById('area-baloes');
+const contaTexto = document.getElementById('num-conta');
+const placarTexto = document.getElementById('placar');
+const progressoTexto = document.getElementById('progresso');
+
+// Variáveis de controle do estado do jogo
+let pontos = 0;
+let fase = 1;
+let acertosFase = 0;
+let respCerta;
+let loopCriador;
+let jogoAtivo = false;
+
+/**
+ * Inicia o jogo removendo a tela inicial e disparando os geradores
+ */
+function comecarAgora() {
+    overlay.style.display = "none";
+    jogoAtivo = true;
+    proximaConta(); 
+    gerarBalao();   // Primeiro balão surge imediatamente
+    iniciarCiclo(); 
 }
 
-/* Estilo do botão de início: grande, centralizado e verde */
-#botao-master {
-    padding: 50px 100px; font-size: 40px; color: white;
-    background: linear-gradient(145deg, #2ecc71, #27ae60);
-    border: 8px solid #fff; border-radius: 30px;
-    cursor: pointer; box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-    transition: 0.3s;
+/**
+ * Gera uma nova expressão matemática e atualiza a interface
+ */
+function proximaConta() {
+    // Dificuldade baseada na fase
+    let limite = fase * 5;
+    let n1 = Math.floor(Math.random() * limite) + 2;
+    let n2 = Math.floor(Math.random() * limite) + 1;
+    
+    let op = "+";
+    // Introduz subtração a partir da Fase 2
+    if (fase >= 2 && Math.random() > 0.5) {
+        op = "-";
+        if (n1 < n2) [n1, n2] = [n2, n1]; // Evita resultado negativo
+        respCerta = n1 - n2;
+    } else {
+        respCerta = n1 + n2;
+    }
+    
+    // Atualiza o texto da conta na lateral
+    contaTexto.innerText = `${n1}${op}${n2}`;
+    // Atualiza o placar e o contador de acertos no HTML
+    placarTexto.innerText = `Fase: ${fase} | Pontos: ${pontos}`;
+    progressoTexto.innerText = `Acertos: ${acertosFase}/5`;
 }
-#botao-master:hover { transform: scale(1.1); }
 
-/* Layout em colunas: menu lateral e área de jogo */
-#layout-principal { display: flex; height: 100vh; }
-#menu-lateral { width: 300px; background: #1a252f; color: white; padding: 20px; display: flex; flex-direction: column; }
+/**
+ * Cria os elementos de balão via código CSS e define movimento
+ */
+function gerarBalao() {
+    if (!jogoAtivo || document.hidden) return;
 
-/* Borda verde na caixa de pergunta matemática */
-#caixa-pergunta { border: 6px solid #2ecc71; border-radius: 20px; text-align: center; margin: 20px 0; padding: 20px; }
-#num-conta { font-size: 60px; color: #2ecc71; font-weight: bold; }
+    const b = document.createElement('div');
+    b.className = 'balao';
+    b.style.cssText = `
+        position: absolute; bottom: -150px; width: 80px; height: 100px;
+        background: hsl(${Math.random() * 360}, 70%, 50%);
+        border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+        display: flex; justify-content: center; align-items: center;
+        color: white; font-weight: bold; cursor: pointer; font-size: 24px;
+        left: ${Math.random() * (campo.clientWidth - 100)}px;
+    `;
+    
+    // Sorteia se o balão terá a resposta correta
+    const eCerto = Math.random() > 0.7;
+    b.innerText = eCerto ? respCerta : respCerta + (Math.floor(Math.random() * 5) + 1);
+    campo.appendChild(b);
 
-/* Área onde os balões circulam */
-#area-baloes { flex-grow: 1; position: relative; background: #add8e6; }
+    // Configura a velocidade de subida baseada na fase
+    let pos = -150;
+    const velocidade = 1.2 + (fase * 0.4);
+    
+    const anim = setInterval(() => {
+        if (jogoAtivo && !document.hidden) {
+            pos += velocidade;
+            b.style.bottom = pos + 'px';
+            if (pos > campo.clientHeight) { clearInterval(anim); b.remove(); }
+        } else { clearInterval(anim); b.remove(); } // Limpa ao sair do foco
+    }, 16);
+
+    // Evento de clique para validar resposta
+    b.onclick = () => {
+        if (parseInt(b.innerText) === respCerta) {
+            // Atualiza pontuação e contador de acertos
+            pontos += 10;
+            acertosFase++;
+
+            // Lógica de mudança de fase a cada 5 acertos
+            if (acertosFase >= 5) {
+                fase++;
+                acertosFase = 0;
+                alert(`Excelente! Você avançou para a Fase ${fase}`);
+                iniciarCiclo(); // Ajusta a velocidade de aparecimento
+            }
+            
+            b.remove();
+            proximaConta(); // Gera a próxima pergunta e atualiza interface
+        } else {
+            alert(`Fim de Jogo! Você fez ${pontos} pontos.`);
+            location.reload();
+        }
+    };
+}
+
+/**
+ * Gerencia a frequência de novos balões na tela
+ */
+function iniciarCiclo() {
+    clearInterval(loopCriador);
+    // Intervalo diminui conforme a fase (mínimo 600ms)
+    const tempoSpawn = Math.max(600, 2200 - (fase * 200));
+    loopCriador = setInterval(gerarBalao, tempoSpawn);
+}
