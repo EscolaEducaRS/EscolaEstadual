@@ -32,3 +32,24 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden;
 @keyframes estouro { to { transform: scale(2.5); opacity: 0; } }
 
 #exibicao-ranking div { font-size: 13px; padding: 4px 0; border-bottom: 1px solid #34495e; }
+
+#btn-pause {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background-color: #f39c12;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#btn-pause:hover { background-color: #e67e22; }
+
+/* Estilo para quando o jogo estiver pausado (opcional) */
+.pausado #campo-baloes {
+    filter: blur(2px) grayscale(50%);
+    pointer-events: none;
+}
