@@ -1,111 +1,105 @@
 /**
- * jogoBaloes/baloes.js
- * Lógica do jogo de balões com correção de acúmulo em segundo plano.
+ * baloes.js - Lógica completa para o portal EscolaEstadual
+ * Implementa ranking (Pontos/Tempo), Pause e Dificuldade Progressiva.
  */
 
-// 1. Variáveis Globais e Integração
+// 1. Definições de Variáveis e Integração com LocalStorage
 const nomeUser = localStorage.getItem('escola_nome') || "Estudante";
 const areaJogo = document.getElementById('campo-baloes');
 const displayConta = document.getElementById('texto-conta');
-const displayPontos = document.getElementById('painel-pontos');
+const displayStatus = document.getElementById('painel-status');
 const btnPause = document.getElementById('btn-pause');
 
 let pts = 0;
 let level = 1;
-let acertosNaSessao = 0;
+let acertosFase = 0;
 let resCorreta;
 let tempoInicio;
-let listaTempos = [];
+let temposAcertos = [];
 let criadorBaloes;
-let jogoPausado = false; // Estado inicial do pause
+let jogoPausado = false;
 const ACERTOS_PARA_SUBIR = 5;
 
 document.getElementById('msg-boas-vindas').innerText = `Oi, ${nomeUser}!`;
 
 /**
- * Alterna entre Pausado e Rodando
+ * Alterna o estado de pause do jogo
  */
 function alternarPause() {
     jogoPausado = !jogoPausado;
-    
     if (jogoPausado) {
         clearInterval(criadorBaloes);
         btnPause.innerText = "Retomar Jogo";
         btnPause.style.backgroundColor = "#27ae60";
-        document.body.classList.add('pausado');
     } else {
-        reiniciarCiclo();
+        reiniciarGerador();
         btnPause.innerText = "Pausar Jogo";
         btnPause.style.backgroundColor = "#f39c12";
-        document.body.classList.remove('pausado');
-        tempoInicio = Date.now(); // Reseta o tempo da pergunta ao despausar
+        tempoInicio = Date.now(); // Reseta o tempo da pergunta atual
     }
 }
 
 /**
- * Gera uma nova rodada matemática
+ * Gera cálculos que ficam mais difíceis a cada fase
  */
 function novaRodada() {
-    let n1, n2, operador;
-    const dificuldade = level * 7;
+    let n1, n2, op;
+    const dif = level * 7;
 
     if (level === 1) {
         n1 = Math.floor(Math.random() * 10) + 1;
         n2 = Math.floor(Math.random() * 10) + 1;
-        operador = "+";
+        op = "+";
         resCorreta = n1 + n2;
     } else {
-        n1 = Math.floor(Math.random() * dificuldade) + 10;
-        n2 = Math.floor(Math.random() * n1);
-        operador = Math.random() > 0.5 ? "-" : "+";
-        resCorreta = operador === "-" ? n1 - n2 : n1 + n2;
+        n1 = Math.floor(Math.random() * dif) + 10;
+        n2 = Math.floor(Math.random() * n1); // Evita resultado negativo
+        op = Math.random() > 0.5 ? "-" : "+";
+        resCorreta = op === "-" ? n1 - n2 : n1 + n2;
     }
     
-    displayConta.innerText = `${n1}${operador}${n2}`;
-    displayPontos.innerText = `Fase: ${level} | Pontos: ${pts} | Acertos: ${acertosNaSessao}/${ACERTOS_PARA_SUBIR}`;
+    displayConta.innerText = `${n1}${op}${n2}`;
+    displayStatus.innerText = `Fase: ${level} | Pontos: ${pts} | Acertos: ${acertosFase}/${ACERTOS_PARA_SUBIR}`;
     tempoInicio = Date.now();
 }
 
 /**
- * Cria o balão respeitando o estado de pause
+ * Cria balões e gerencia o movimento de subida
  */
 function criarBalao() {
-    if (jogoPausado || document.hidden) return;
+    if (jogoPausado || document.hidden) return; // Evita acúmulo em segundo plano ou pause
 
     const b = document.createElement('div');
     b.className = 'balao';
     const correto = Math.random() > 0.7;
-    b.innerText = correto ? resCorreta : resCorreta + (Math.floor(Math.random() * 10) - 5);
+    b.innerText = correto ? resCorreta : resCorreta + (Math.floor(Math.random() * 8) - 4);
     
     b.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
-    b.style.left = Math.random() * (areaJogo.clientWidth - 90) + 'px';
+    b.style.left = Math.random() * (areaJogo.clientWidth - 100) + 'px';
     areaJogo.appendChild(b);
 
-    let p = -150;
-    const v = 1.4 + (level * 0.4);
+    let pos = -150;
+    const vel = 1.5 + (level * 0.4);
     
     const loop = setInterval(() => {
-        // Só move se não estiver pausado e a aba estiver visível
         if (!jogoPausado && !document.hidden) {
-            p += v;
-            b.style.bottom = p + 'px';
-            if (p > areaJogo.clientHeight) { clearInterval(loop); b.remove(); }
+            pos += vel;
+            b.style.bottom = pos + 'px';
+            if (pos > areaJogo.clientHeight) { clearInterval(loop); b.remove(); }
         }
     }, 16);
 
     b.onclick = () => {
-        if (jogoPausado) return; // Impede clique enquanto pausado
-
+        if (jogoPausado) return;
         if (parseInt(b.innerText) === resCorreta) {
-            listaTempos.push((Date.now() - tempoInicio) / 1000);
+            temposAcertos.push((Date.now() - tempoInicio) / 1000);
             pts += 10;
-            acertosNaSessao++;
+            acertosFase++;
 
-            if (acertosNaSessao >= ACERTOS_PARA_SUBIR) {
+            if (acertosFase >= ACERTOS_PARA_SUBIR) {
                 level++;
-                acertosNaSessao = 0;
-                alert(`Nível ${level}!`);
-                reiniciarCiclo();
+                acertosFase = 0;
+                reiniciarGerador();
             }
             
             b.classList.add('estourando');
@@ -113,8 +107,9 @@ function criarBalao() {
             setTimeout(() => {
                 b.remove();
                 novaRodada();
-                document.getElementById('valor-media').innerText = 
-                    (listaTempos.reduce((a,b)=>a+b,0)/listaTempos.length).toFixed(2);
+                const media = temposAcertos.length > 0 ? 
+                    (temposAcertos.reduce((a,b)=>a+b,0)/temposAcertos.length).toFixed(2) : 0;
+                document.getElementById('valor-media').innerText = media;
             }, 300);
         } else {
             fimDeJogo();
@@ -122,26 +117,44 @@ function criarBalao() {
     };
 }
 
-// ... (Funções de Ranking e Finalização mantidas conforme última versão) ...
+/**
+ * Persistência e Ranking (Desempate por tempo médio)
+ */
+function salvarRank() {
+    let r = JSON.parse(localStorage.getItem('rank_baloes')) || [];
+    const m = temposAcertos.length > 0 ? (temposAcertos.reduce((a,b)=>a+b,0)/temposAcertos.length) : 0;
+    r.push({ nome: nomeUser, pts: pts, t: parseFloat(m.toFixed(2)) });
+    r.sort((a,b) => b.pts - a.pts || a.t - b.t); // Ordena pontos (maior) e tempo (menor)
+    localStorage.setItem('rank_baloes', JSON.stringify(r.slice(0, 10)));
+}
 
-function reiniciarCiclo() {
+function mostrarRank() {
+    const dados = JSON.parse(localStorage.getItem('rank_baloes')) || [];
+    document.getElementById('exibicao-ranking').innerHTML = dados.map((r, i) => 
+        `<div>${i+1}º ${r.nome} - ${r.pts}pts (${r.t}s)</div>`
+    ).join('');
+}
+
+function fimDeJogo() {
+    salvarRank();
+    alert(`Fim de jogo! Pontos: ${pts}`);
+    location.reload();
+}
+
+function reiniciarGerador() {
     clearInterval(criadorBaloes);
     if (!jogoPausado) {
-        const intervalo = Math.max(800, 2500 - (level * 200));
-        criadorBaloes = setInterval(criarBalao, intervalo);
+        criadorBaloes = setInterval(criarBalao, Math.max(800, 2500 - (level * 200)));
     }
 }
 
-// Monitor de Visibilidade (Visibility API)
+// Bloqueia execução em segundo plano para não travar o navegador
 document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-        clearInterval(criadorBaloes);
-    } else if (!jogoPausado) {
-        reiniciarCiclo();
-    }
+    if (document.hidden) clearInterval(criadorBaloes);
+    else if (!jogoPausado) reiniciarGerador();
 });
 
-// Inicialização
+// Inicialização imediata
 novaRodada();
 mostrarRank();
-reiniciarCiclo();
+reiniciarGerador();
