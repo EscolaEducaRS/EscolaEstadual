@@ -3,40 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <title>Balões Matemáticos - Escola Estadual</title>
+    <!-- Link para o arquivo de estilização -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Camada de Início: Centralizada para focar a atenção do aluno -->
+    <!-- Camada inicial com o botão grande e centralizado -->
     <div id="tela-inicial">
         <button id="botao-master" onclick="comecarAgora()">VAMOS JOGAR!</button>
     </div>
 
     <div id="layout-principal">
-        <!-- Barra Lateral Esquerda: Informações fixas do jogo -->
+        <!-- Barra lateral esquerda para exibir o progresso do aluno -->
         <aside id="menu-lateral">
             <div class="user-info">
                 <h2 id="nome-aluno">Olá!</h2>
-                <!-- Exibe a Fase e o progresso para o próximo nível -->
+                <!-- Exibição da Fase e Pontos totais -->
                 <div id="placar">Fase: 1 | Pontos: 0</div>
+                <!-- Exibição do contador de acertos para a próxima fase -->
                 <div id="progresso">Acertos: 0/5</div>
             </div>
 
-            <!-- Caixa da Pergunta com Borda Verde solicitada anteriormente -->
+            <!-- Área da conta matemática com a borda verde solicitada -->
             <div id="caixa-pergunta">
-                <span>Resolva:</span>
+                <span>Quanto é?</span>
                 <div id="num-conta">...</div>
             </div>
 
+            <!-- Seção para o ranking dos 10 melhores -->
             <div id="ranking-top">
                 <h3>🏆 TOP 10</h3>
                 <div id="lista-rank"></div>
             </div>
         </aside>
 
-        <!-- Área de Jogo onde os balões sobem -->
+        <!-- Área principal onde os balões serão gerados -->
         <main id="area-baloes"></main>
     </div>
 
+    <!-- Script com a lógica do jogo -->
     <script src="baloes.js"></script>
 </body>
 </html>
