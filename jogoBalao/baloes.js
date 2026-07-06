@@ -1,120 +1,220 @@
 /**
- * Lógica do Jogo de Balões com Fases de Dificuldade
- * A cada 5 acertos: Velocidade aumenta e expressões mudam.
+ * CLASSE BALLOONGAME
+ * Gerencia a lógica de expressões, spawn de balões, ranking e sistema de pause.
  */
-
-const overlay = document.getElementById('tela-inicial');
-const campo = document.getElementById('area-baloes');
-const contaTexto = document.getElementById('num-conta');
-const placarTexto = document.getElementById('placar');
-const progressoTexto = document.getElementById('progresso');
-
-let pontos = 0;
-let fase = 1;
-let acertosFase = 0; // Contador para controlar a mudança de nível
-let respCerta;
-let loopCriador;
-let jogoAtivo = false;
-
-/**
- * Inicia o jogo imediatamente após o clique no botão central
- */
-function comecarAgora() {
-    overlay.style.display = "none";
-    jogoAtivo = true;
-    proximaConta(); 
-    gerarBalao();   // Primeiro balão surge sem delay
-    iniciarCiclo(); 
-}
-
-/**
- * Gera expressões baseadas na fase atual
- * Fase 1-2: Soma | Fase 3+: Introduz Subtração
- */
-function proximaConta() {
-    // Aumenta o valor dos números conforme a fase
-    let limite = fase * 5;
-    let n1 = Math.floor(Math.random() * limite) + 2;
-    let n2 = Math.floor(Math.random() * limite) + 1;
-    
-    let op = "+";
-    // A partir da fase 3, introduz subtrações aleatórias
-    if (fase >= 3 && Math.random() > 0.5) {
-        op = "-";
-        // Garante que o resultado não seja negativo
-        if (n1 < n2) [n1, n2] = [n2, n1];
-        respCerta = n1 - n2;
-    } else {
-        respCerta = n1 + n2;
+class BalloonGame {
+    constructor() {
+        // Inicialização de variáveis de estado
+        this.userName = localStorage.getItem('escola_nome') || "Estudante";
+        this.score = 0;
+        this.phase = 1;
+        this.hits = 0;
+        this.expressions = []; // Fila de no máximo 5 expressões
+        this.isPaused = true;
+        this.intervals = { spawn: null, expression: null };
+        
+        this.initDOM(); // Monta a interface via JS [14]
+        this.setupSecurityEvents(); // Configura Anti-Cheat (Focus/Blur)
     }
-    
-    contaTexto.innerText = `${n1}${op}${n2}`;
-    progressoTexto.innerText = `Acertos: ${acertosFase}/5`;
-}
 
-/**
- * Cria balões e gerencia a velocidade progressiva
- */
-function gerarBalao() {
-    if (!jogoAtivo || document.hidden) return;
+    /**
+     * Monta o Front-end inteiramente via JavaScript conforme instrução [14]
+     */
+    initDOM() {
+        const root = document.getElementById('game-root');
+        root.innerHTML = `
+            <div id="overlay"><button id="btn-start">INICIAR DESAFIO</button></div>
+            <div id="game-container">
+                <main id="scene"></main>
+                <aside id="sidebar">
+                    <h2>👤 ${this.userName}</h2>
+                    <div id="status-hud">Fase: 1 | Pontos: 0</div>
+                    <button id="btn-pause-manual" style="margin-top:10px; padding:10px; cursor:pointer;">PAUSAR JOGO</button>
+                    <hr style="width:100%; margin:20px 0;">
+                    <div id="expression-list"></div>
+                    <div style="margin-top: auto;">
+                        <h3>🏆 TOP 10 RANKING</h3>
+                        <div id="ranking-list"></div>
+                    </div>
+                </aside>
+            </div>
+        `;
+        this.renderRanking();
+        
+        // Eventos de clique iniciais
+        document.getElementById('btn-start').onclick = () => this.togglePause(false);
+        document.getElementById('btn-pause-manual').onclick = () => this.togglePause(true);
+    }
 
-    const b = document.createElement('div');
-    b.className = 'balao';
-    b.style.cssText = `
-        position: absolute; bottom: -150px; width: 80px; height: 100px;
-        background: hsl(${Math.random() * 360}, 70%, 50%);
-        border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-        display: flex; justify-content: center; align-items: center;
-        color: white; font-weight: bold; cursor: pointer; font-size: 24px;
-        left: ${Math.random() * (campo.clientWidth - 100)}px;
-    `;
-    
-    // Define se o balão traz a resposta certa ou errada
-    const eCerto = Math.random() > 0.7;
-    b.innerText = eCerto ? respCerta : respCerta + (Math.floor(Math.random() * 5) + 1);
-    campo.appendChild(b);
+    /**
+     * Sistema Anti-Trapaça: Pausa e limpa a tela ao perder o foco [MDN 343]
+     */
+    setupSecurityEvents() {
+        window.onblur = () => this.togglePause(true);
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) this.togglePause(true);
+        });
+    }
 
-    // Velocidade aumenta 0.5 a cada fase subida
-    let pos = -150;
-    const velocidade = 1.5 + (fase * 0.5);
-    
-    const anim = setInterval(() => {
-        if (jogoAtivo && !document.hidden) {
-            pos += velocidade;
-            b.style.bottom = pos + 'px';
-            if (pos > campo.clientHeight) { clearInterval(anim); b.remove(); }
-        } else { clearInterval(anim); b.remove(); } // Limpa ao trocar de aba (Anti-cheat)
-    }, 16);
-
-    b.onclick = () => {
-        if (parseInt(b.innerText) === respCerta) {
-            pontos += 10;
-            acertosFase++;
-
-            // Lógica de mudança de fase a cada 5 acertos
-            if (acertosFase >= 5) {
-                fase++;
-                acertosFase = 0;
-                alert(`Parabéns! Você avançou para a Fase ${fase}`);
-                iniciarCiclo(); // Ajusta a frequência de spawn dos balões
-            }
-            
-            b.remove();
-            placarTexto.innerText = `Fase: ${fase} | Pontos: ${pontos}`;
-            proximaConta();
+    /**
+     * Gerencia o estado de Pause e destruição de elementos
+     */
+    togglePause(pause) {
+        this.isPaused = pause;
+        document.getElementById('overlay').style.display = pause ? 'flex' : 'none';
+        
+        if (pause) {
+            this.stopEngine();
+            this.clearScreen(); // Remove balões e expressões ao pausar
         } else {
-            alert(`Fim de Jogo! Você chegou à fase ${fase}.`);
-            location.reload();
+            this.startEngine();
         }
-    };
+    }
+
+    /**
+     * Limpa elementos ativos para evitar que o usuário pense na resposta parado
+     */
+    clearScreen() {
+        this.expressions = [];
+        document.getElementById('scene').innerHTML = '';
+        document.getElementById('expression-list').innerHTML = '';
+    }
+
+    /**
+     * Inicia os timers de geração baseados na fase atual
+     */
+    startEngine() {
+        this.generateExpression(); // Gera a primeira imediatamente
+        
+        // Velocidade de spawn de balões aumenta com a fase
+        const spawnTime = Math.max(700, 2000 - (this.phase * 200));
+        // Entrada de novas expressões acelera com o tempo
+        const expTime = Math.max(3000, 6000 - (this.phase * 400));
+
+        this.intervals.spawn = setInterval(() => this.spawnBalloon(), spawnTime);
+        this.intervals.expression = setInterval(() => this.generateExpression(), expTime);
+    }
+
+    stopEngine() {
+        clearInterval(this.intervals.spawn);
+        clearInterval(this.intervals.expression);
+    }
+
+    /**
+     * Gerencia a fila de no máximo 5 expressões
+     */
+    generateExpression() {
+        if (this.expressions.length >= 5) {
+            this.expressions.shift(); // Remove a mais antiga se houver 5
+        }
+
+        const n1 = Math.floor(Math.random() * (this.phase * 10)) + 1;
+        const n2 = Math.floor(Math.random() * (this.phase * 5)) + 1;
+        const op = (this.phase > 2 && Math.random() > 0.5) ? '-' : '+';
+        
+        const res = op === '+' ? n1 + n2 : Math.max(n1, n2) - Math.min(n1, n2);
+        const text = op === '+' ? `${n1}+${n2}` : `${Math.max(n1, n2)}-${Math.min(n1, n2)}`;
+
+        this.expressions.push({ text, res });
+        this.updateUI();
+    }
+
+    updateUI() {
+        const list = document.getElementById('expression-list');
+        list.innerHTML = this.expressions.map(ex => `
+            <div class="exp-box"><div class="exp-text">${ex.text}</div></div>
+        `).join('');
+        document.getElementById('status-hud').innerText = `Fase: ${this.phase} | Pontos: ${this.score}`;
+    }
+
+    /**
+     * Cria o elemento físico do balão e define sua física
+     */
+    spawnBalloon() {
+        if (this.isPaused || this.expressions.length === 0) return;
+
+        const scene = document.getElementById('scene');
+        const balloon = document.createElement('div');
+        balloon.className = 'balao';
+        
+        // Decide se o balão contém uma resposta certa de qualquer uma das 5 expressões
+        const target = this.expressions[Math.floor(Math.random() * this.expressions.length)];
+        const isRight = Math.random() > 0.6;
+        const val = isRight ? target.res : target.res + (Math.floor(Math.random() * 10) - 5);
+
+        balloon.innerText = val;
+        balloon.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+        balloon.style.left = Math.random() * (scene.clientWidth - 90) + 'px';
+        scene.appendChild(balloon);
+
+        this.animateBalloon(balloon, val);
+    }
+
+    animateBalloon(el, val) {
+        let bottom = -120;
+        const speed = 1.3 + (this.phase * 0.4); // Velocidade sobe com a fase
+
+        const move = setInterval(() => {
+            if (this.isPaused) { clearInterval(move); el.remove(); return; }
+            
+            bottom += speed;
+            el.style.bottom = bottom + 'px';
+
+            if (bottom > window.innerHeight) { 
+                clearInterval(move); 
+                el.remove(); 
+            }
+        }, 16);
+
+        el.onclick = () => {
+            const index = this.expressions.findIndex(ex => ex.res === parseInt(val));
+            if (index !== -1) {
+                this.score += 10;
+                this.hits++;
+                this.expressions.splice(index, 1); // Remove a expressão resolvida
+                el.remove();
+                clearInterval(move);
+                this.checkPhase();
+                this.updateUI();
+            } else {
+                this.endGame();
+            }
+        };
+    }
+
+    checkPhase() {
+        if (this.hits >= 5) {
+            this.phase++;
+            this.hits = 0;
+            this.stopEngine();
+            this.startEngine(); // Reinicia com novos tempos
+        }
+    }
+
+    endGame() {
+        this.togglePause(true);
+        this.saveRanking();
+        alert(`GAME OVER! Você atingiu ${this.score} pontos na Fase ${this.phase}.`);
+        this.score = 0;
+        this.phase = 1;
+        this.renderRanking();
+    }
+
+    saveRanking() {
+        let rank = JSON.parse(localStorage.getItem('rank_baloes_final')) || [];
+        rank.push({ name: this.userName, pts: this.score });
+        rank.sort((a, b) => b.pts - a.pts);
+        localStorage.setItem('rank_baloes_final', JSON.stringify(rank.slice(0, 10)));
+    }
+
+    renderRanking() {
+        const data = JSON.parse(localStorage.getItem('rank_baloes_final')) || [];
+        const list = document.getElementById('ranking-list');
+        if (list) {
+            list.innerHTML = data.map((r, i) => `<div>${i+1}º ${r.name} - ${r.pts} pts</div>`).join('');
+        }
+    }
 }
 
-/**
- * Ajusta a frequência com que os balões aparecem conforme a fase
- */
-function iniciarCiclo() {
-    clearInterval(loopCriador);
-    // Diminui o tempo de espera entre balões conforme a fase aumenta
-    const tempoSpawn = Math.max(600, 2000 - (fase * 200));
-    loopCriador = setInterval(gerarBalao, tempoSpawn);
-}
+// Inicializa a classe quando o documento carregar [15]
+window.onload = () => { new BalloonGame(); };
