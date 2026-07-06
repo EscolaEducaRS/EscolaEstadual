@@ -1,26 +1,38 @@
-/* Reset básico para garantir consistência entre navegadores [6, 7] */
-body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; overflow: hidden; background-color: #87CEEB; }
+/* Reset e Configurações de Layout */
+body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; overflow: hidden; background: #87CEEB; }
 
-/* Container principal em Flexbox [8] */
-#game-container { display: flex; height: 100vh; flex-direction: row; }
+/* Container principal - Sidebar à Direita */
+#main-wrapper { display: flex; height: 100vh; }
+#canvas-jogo { flex-grow: 1; position: relative; background: #ADD8E6; overflow: hidden; }
 
-/* Área onde os balões voam */
-#scene { flex-grow: 1; position: relative; background: #ADD8E6; overflow: hidden; cursor: crosshair; }
+/* Barra Lateral Direita */
+#painel-info { 
+    width: 300px; background: #2C3E50; color: white; padding: 20px; 
+    display: flex; flex-direction: column; box-shadow: -5px 0 10px rgba(0,0,0,0.2); 
+}
 
-/* Barra lateral à direita para informações e ranking [9] */
-#sidebar { width: 320px; background: #2C3E50; color: white; padding: 20px; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.3); z-index: 10; }
+/* Área da Expressão com Borda Verde solicitada */
+.box-conta { 
+    border: 5px solid #2ECC71; border-radius: 12px; padding: 15px; 
+    margin-bottom: 10px; text-align: center; background: #34495E; 
+}
+.texto-conta { font-size: 32px; font-weight: bold; color: #2ECC71; }
 
-/* Estilização das expressões matemáticas com borda verde [10] */
-.exp-box { border: 4px solid #2ECC71; border-radius: 12px; padding: 15px; margin-bottom: 12px; text-align: center; background: #34495E; transition: all 0.3s; }
-.exp-text { font-size: 36px; font-weight: bold; color: #2ECC71; }
+/* Botão de Início Centralizado */
+#overlay-start { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.8); z-index: 2000; display: flex; 
+    justify-content: center; align-items: center; 
+}
+#btn-play { 
+    padding: 40px 80px; font-size: 36px; cursor: pointer; 
+    background: #27AE60; color: white; border: 8px solid white; border-radius: 20px; 
+}
 
-/* Overlay de Início e Pause centralizado */
-#overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-#btn-start { padding: 40px 80px; font-size: 32px; font-weight: bold; color: white; background: #27AE60; border: 8px solid white; border-radius: 20px; cursor: pointer; transition: 0.3s; }
-#btn-start:hover { transform: scale(1.05); background: #2ECC71; }
-
-/* Design do Balão via CSS puro para performance [11] */
-.balao { position: absolute; bottom: -120px; width: 80px; height: 100px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; font-size: 24px; box-shadow: inset -5px -5px 15px rgba(0,0,0,0.2); cursor: pointer; }
-
-/* Lista de Ranking */
-#ranking-list div { font-size: 14px; padding: 6px 0; border-bottom: 1px solid #3E5871; }
+/* Estilo do Balão */
+.balao { 
+    position: absolute; bottom: -120px; width: 70px; height: 90px; 
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; 
+    display: flex; justify-content: center; align-items: center; 
+    font-weight: bold; color: white; cursor: pointer; 
+}
