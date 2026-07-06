@@ -1,26 +1,27 @@
 /**
- * CLASSE BALLOONGAME
- * Gerencia a fila de 5 expressões, ranking persistente e anti-cheat.
+ * CLASSE BALLOONGAME - Versão Final Corrigida
+ * Gerencia ciclo de vida, ranking e fila de expressões matemáticas.
  */
 class BalloonGame {
     constructor() {
-        // Inicialização de variáveis de estado
+        // Inicialização do estado
         this.userName = localStorage.getItem('escola_nome') || "Estudante";
         this.score = 0;
         this.phase = 1;
         this.hits = 0;
-        this.expressionQueue = []; // Máximo 5 simultâneas
+        this.expressionQueue = []; // Máximo de 5 contas simultâneas
         this.responseTimes = [];
         this.isActive = false;
         this.timers = { spawn: null, queue: null };
 
-        // CHAMADA CORRIGIDA: Nome deve bater com a definição abaixo
+        // CHAMADA CRÍTICA: Nome sincronizado com o método definido abaixo
         this.initInterface(); 
         this.setupSecurity(); 
     }
 
     /**
-     * Injeta todo o front-end via JavaScript respeitando a regra de HTML limpo.
+     * Injeta todo o front-end via JavaScript no elemento raiz 'game-app'.
+     * Cumpre a regra de não ter texto ou estrutura no HTML original.
      */
     initInterface() {
         const root = document.getElementById('game-app');
@@ -28,7 +29,7 @@ class BalloonGame {
 
         root.innerHTML = `
             <div id="overlay-start">
-                <button id="btn-begin" class="btn-ui btn-play">INICIAR DESAFIO</button>
+                <button id="btn-begin" class="btn-ui btn-play">INICIAR JOGO</button>
             </div>
             <div id="overlay-gameover" style="display:none;"></div>
             <div id="main-wrapper">
@@ -47,12 +48,14 @@ class BalloonGame {
             </div>
         `;
         this.renderRanking();
+        
+        // Atribuição de eventos aos elementos injetados
         document.getElementById('btn-begin').onclick = () => this.toggleGameState(true);
         document.getElementById('btn-pause-manual').onclick = () => this.toggleGameState(false);
     }
 
     /**
-     * Anti-Cheat: Destrói elementos e pausa ao perder o foco [MDN 343].
+     * Anti-Cheat: Pausa e limpa o campo de jogo se a janela perder o foco.
      */
     setupSecurity() {
         window.onblur = () => { if(this.isActive) this.toggleGameState(false); };
@@ -62,7 +65,7 @@ class BalloonGame {
     }
 
     /**
-     * Gerencia o estado do jogo e a limpeza da tela.
+     * Gerencia a transição entre estados e destruição de objetos para otimização.
      */
     toggleGameState(active) {
         this.isActive = active;
@@ -70,22 +73,28 @@ class BalloonGame {
         if (active) {
             this.startEngine();
         } else {
-            this.clearScreen();
+            this.clearGameplay();
         }
     }
 
     /**
-     * Adiciona nova conta na fila e remove a mais antiga se passar de 5.
+     * Adiciona nova conta na fila (máximo 5). Se exceder, a mais antiga é removida (shift).
      */
     generateExpression() {
-        if (this.expressionQueue.length >= 5) this.expressionQueue.shift();
+        if (this.expressionQueue.length >= 5) {
+            this.expressionQueue.shift(); 
+        }
 
         const n1 = Math.floor(Math.random() * (this.phase * 8)) + 2;
         const n2 = Math.floor(Math.random() * n1);
         const op = (this.phase > 1 && Math.random() > 0.5) ? '-' : '+';
         const result = op === '+' ? n1 + n2 : n1 - n2;
 
-        this.expressionQueue.push({ text: `${n1}${op}${n2}`, value: result, start: Date.now() });
+        this.expressionQueue.push({ 
+            text: `${n1}${op}${n2}`, 
+            value: result, 
+            start: Date.now() 
+        });
         this.updateHUD();
     }
 
@@ -98,7 +107,7 @@ class BalloonGame {
     }
 
     /**
-     * Cria o balão fisicamente e define sua velocidade por fase.
+     * Cria o elemento balão e define sua velocidade com base na fase atual.
      */
     spawnBalloon() {
         if (!this.isActive || this.expressionQueue.length === 0) return;
@@ -157,20 +166,21 @@ class BalloonGame {
     }
 
     /**
-     * Tela de Game Over com Nome, Pontos, Tempo e Opções de Reiniciar/Sair.
+     * Tela de resultados final com opções de persistência no ranking.
      */
     triggerGameOver() {
         this.isActive = false;
-        this.clearScreen();
+        this.clearGameplay();
         this.saveRanking();
 
-        const avg = this.responseTimes.length > 0 ? (this.responseTimes.reduce((a,b)=>a+b,0)/this.responseTimes.length).toFixed(2) : 0;
+        const avg = this.calculateAvg();
         const overlay = document.getElementById('overlay-gameover');
         
         overlay.innerHTML = `
             <div style="background:#34495E; padding:40px; border-radius:20px; border:5px solid #2ECC71;">
                 <h1>FIM DE JOGO</h1>
-                <p>Usuário: ${this.userName} | Pontos: ${this.score}</p>
+                <p>Usuário: <strong>${this.userName}</strong></p>
+                <p>Pontuação: <span style="color:#2ECC71">${this.score}</span></p>
                 <p>Tempo Médio: ${avg}s</p>
                 <button id="btn-retry" class="btn-ui btn-play">JOGAR NOVAMENTE</button>
                 <button id="btn-quit" class="btn-ui btn-exit">SAIR</button>
@@ -180,15 +190,20 @@ class BalloonGame {
 
         document.getElementById('btn-retry').onclick = () => {
             overlay.style.display = 'none';
-            this.score = 0; this.phase = 1; this.hits = 0; this.responseTimes = [];
+            this.resetStats();
             this.toggleGameState(true);
         };
         document.getElementById('btn-quit').onclick = () => window.location.href = '../index.html';
     }
 
+    resetStats() {
+        this.score = 0; this.phase = 1; this.hits = 0;
+        this.responseTimes = []; this.expressionQueue = [];
+    }
+
     saveRanking() {
         let rank = JSON.parse(localStorage.getItem('rank_balao_final')) || [];
-        const avg = this.responseTimes.length > 0 ? (this.responseTimes.reduce((a,b)=>a+b,0)/this.responseTimes.length).toFixed(2) : 0;
+        const avg = this.calculateAvg();
         rank.push({ n: this.userName, p: this.score, t: parseFloat(avg) });
         rank.sort((a,b) => b.p - a.p || a.t - b.t);
         localStorage.setItem('rank_balao_final', JSON.stringify(rank.slice(0, 10)));
@@ -197,11 +212,15 @@ class BalloonGame {
 
     renderRanking() {
         const data = JSON.parse(localStorage.getItem('rank_balao_final')) || [];
-        const list = document.getElementById('rank-data');
-        if (list) list.innerHTML = data.map((r, i) => `<div><span>${i+1}º ${r.n}</span> <span>${r.p}pts (${r.t}s)</span></div>`).join('');
+        const container = document.getElementById('rank-data');
+        if (container) container.innerHTML = data.map((r, i) => `<div><span>${i+1}º ${r.n}</span> <span>${r.p}pts (${r.t}s)</span></div>`).join('');
     }
 
-    clearScreen() {
+    calculateAvg() {
+        return this.responseTimes.length > 0 ? (this.responseTimes.reduce((a,b)=>a+b,0)/this.responseTimes.length).toFixed(2) : 0;
+    }
+
+    clearGameplay() {
         clearInterval(this.timers.spawn);
         clearInterval(this.timers.queue);
         this.expressionQueue = [];
@@ -210,7 +229,7 @@ class BalloonGame {
     }
 
     startEngine() {
-        this.clearScreen();
+        this.clearGameplay();
         this.generateExpression();
         this.spawnBalloon();
         this.timers.spawn = setInterval(() => this.spawnBalloon(), Math.max(600, 2000 - (this.phase * 150)));
@@ -218,5 +237,5 @@ class BalloonGame {
     }
 }
 
-// Inicialização segura após o carregamento do DOM
+// Inicialização segura após carregamento do DOM [5]
 window.onload = () => { new BalloonGame(); };
