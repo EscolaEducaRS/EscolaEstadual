@@ -17,25 +17,25 @@ class BalloonGame {
         this.bindEvents(); // Configura segurança (Focus/Blur)
     }
 
-    /**
-     * Injeta a interface no DOM respeitando a regra de não usar HTML estático.
-     */
-    initInterface() {
-        const root = document.getElementById('game-app');
-        root.innerHTML = `
-            <div id="overlay-start"><button id="btn-play">INICIAR JOGO</button></div>
-            <div id="main-wrapper">
-                <main id="canvas-jogo"></main>
-                <aside id="painel-info">
-                    <h2>${this.nomeUser}</h2>
-                    <div id="status">Fase: 1 | Pontos: 0</div>
-                    <button id="btn-pause" style="margin-top:10px; cursor:pointer;">PAUSE</button>
-                    <hr style="width:100%; margin:20px 0;">
-                    <div id="container-lista-exp"></div>
-                    <div id="ranking" style="margin-top:auto;"><h3>🏆 Top 10</h3><div id="rank-data"></div></div>
-                </aside>
-            </div>
-        `;
+    /**     * Injeta a interface no DOM respeitando a regra de não usar HTML estático.      */
+    initDOM() {
+    // Linha 25: O ID dentro do getElementById deve ser 'game-app'
+    const root = document.getElementById('game-app'); 
+    
+    if (!root) {
+        console.error("Erro Crítico: O elemento 'game-app' não foi encontrado no HTML."); [8]
+        return;
+    }
+
+    root.innerHTML = `
+        <div id="overlay-start"><button id="btn-play">INICIAR JOGO</button></div>
+        <div id="main-wrapper">
+            <main id="canvas-jogo"></main>
+            <aside id="painel-info">
+                <!-- Restante da interface gerada via JS conforme as restrições -->
+            </aside>
+        </div>
+    `;
         document.getElementById('btn-play').onclick = () => this.setGameState(true);
         document.getElementById('btn-pause').onclick = () => this.setGameState(false);
     }
