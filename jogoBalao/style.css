@@ -8,20 +8,39 @@ body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-
 #canvas-jogo { flex-grow: 1; position: relative; background: #ADD8E6; overflow: hidden; cursor: crosshair; }
 
 /* Sidebar (Lado Direito) */
-#painel-info { width: 320px; background: #2C3E50; color: white; padding: 20px; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.3); z-index: 10; }
+#painel-info { width: 320px; background: #2C3E50; color: white; padding: 20px; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.3); z-index: 10; overflow-y: auto; }
 
 /* Fila de Expressões com Borda Verde solicitada */
 .box-conta { border: 4px solid #2ECC71; border-radius: 12px; padding: 12px; margin-bottom: 10px; text-align: center; background: #34495E; }
 .texto-conta { font-size: 32px; font-weight: bold; color: #2ECC71; }
 
 /* Overlays e Botões */
-#overlay-start, #overlay-gameover { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; }
+#overlay-start, #overlay-gameover { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+#overlay-gameover div { text-align: center; color: white; max-width: 500px; }
+#overlay-gameover h1 { font-size: 48px; margin: 0 0 20px 0; }
+#overlay-gameover p { font-size: 20px; margin: 10px 0; }
+
 .btn-ui { padding: 20px 40px; font-size: 24px; font-weight: bold; cursor: pointer; border-radius: 15px; border: none; transition: 0.3s; margin: 10px; }
+.btn-ui:hover { transform: scale(1.05); }
 .btn-play { background: #27AE60; color: white; border: 5px solid white; }
+.btn-play:hover { background: #229954; }
 .btn-exit { background: #C0392B; color: white; }
+.btn-exit:hover { background: #A93226; }
 
 /* Design do Balão */
-.balao { position: absolute; bottom: -120px; width: 75px; height: 95px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; font-size: 22px; cursor: pointer; }
+.balao { position: absolute; bottom: -120px; width: 75px; height: 95px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 28px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); cursor: pointer; user-select: none; transition: transform 0.1s; }
+.balao:hover { transform: scale(1.1); }
+
+/* Feedback de Erro */
+#error-message { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #C0392B; color: white; padding: 15px 25px; border-radius: 8px; z-index: 3000; display: none; font-weight: bold; }
 
 /* Lista de Ranking */
 #rank-data div { font-size: 14px; padding: 6px 0; border-bottom: 1px solid #3E5871; display: flex; justify-content: space-between; }
+#rank-data { max-height: 200px; overflow-y: auto; }
+
+/* Responsividade para telas pequenas */
+@media (max-width: 768px) {
+    #painel-info { width: 280px; padding: 15px; }
+    .btn-ui { padding: 15px 30px; font-size: 18px; }
+    .texto-conta { font-size: 24px; }
+}
